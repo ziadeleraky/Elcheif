@@ -6,10 +6,16 @@ import MealItem from "./MealItem/MealItem";
 const AvailableMeals = () => {
   const [meals, setMeals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [httpError, setHttpError] = useState(null);
 
   useEffect(() => {
     const fetchMeals = async () => {
       const res = await fetch("https://elcheif-e907f-default-rtdb.firebaseio.com/meals.json");
+
+      if (!res.ok) {
+        throw new Error("Something went wrong!");
+      }
+
       const resData = await res.json();
 
       const meals = [];
@@ -24,16 +30,27 @@ const AvailableMeals = () => {
       }
 
       setMeals(meals);
-      setIsLoading(false)
+      setIsLoading(false);
     };
 
-    fetchMeals();
+    fetchMeals().catch((error) => {
+      setIsLoading(false);
+      setHttpError(error.message);
+    });
   }, []);
 
   if (isLoading) {
     return (
       <section className={classes.loading}>
         <p>Loading...</p>
+      </section>
+    );
+  }
+
+  if (httpError) {
+    return (
+      <section className={classes.mealsError}>
+        <p>{httpError}</p>
       </section>
     );
   }
